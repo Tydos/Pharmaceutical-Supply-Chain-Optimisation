@@ -4,3 +4,6 @@ scikit-learn
 matplotlib
 seaborn
 ipykernel
+optuna
+pytest
+ruff

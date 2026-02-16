@@ -4,3 +4,7 @@
 *pyc
 __pycache__/
 \.venv
+.pytest_cache
+.ruff_cache
+.pytest_cache
+modeltest

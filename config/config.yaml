@@ -1,0 +1,13 @@
+system:
+  raw_dataset_path: "./data/supply_chain.csv"
+  processed_dataset_path: "./data/supply_chain_processed.csv"
+  model_save_path: "./models/model.pkl"
+
+model:
+  test_size: 0.2
+  random_state: 42
+  
+model_params:
+  n_estimators: 100
+  max_depth: 10
+  random_state: 42    

@@ -1,7 +1,7 @@
 import pandas as pd
 import logging
 
-def import_data(file_path):
+def import_data(file_path:str)->pd.DataFrame:
     logging.info(f"Reading CSV from: {file_path}")
 
     try:
