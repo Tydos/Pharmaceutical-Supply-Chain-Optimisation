@@ -7,3 +7,7 @@ ipykernel
 optuna
 pytest
 ruff
+mlflow
+xgboost 
+lightgbm 
+optuna-integration
