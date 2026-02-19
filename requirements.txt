@@ -11,3 +11,5 @@ mlflow
 xgboost 
 lightgbm 
 optuna-integration
+plotly
+nbformat
