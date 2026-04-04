@@ -1,4 +1,3 @@
-import yaml
 from pathlib import Path
 from src.config import load_config
 import logging

@@ -6,42 +6,40 @@ from src.split_data import split_data
 from src.import_data import import_data
 from src.process_data import process_data
 
+DATA_PATH = "/opt/airflow/data/supply_chain.csv"
+
 def hello_world():
     logging.info("Hello Airflow!")
 
 
 def fetch_data():
     logging.info("Fetching data...")
-    data = import_data("/opt/airflow/data/supply_chain.csv")
+    data = import_data(DATA_PATH)
     logging.info(f"Loaded {len(data)} rows")
     return data
 
 
 def preview_data():
     logging.info("Previewing data...")
-    data = import_data("/opt/airflow/data/supply_chain.csv")
+    data = import_data(DATA_PATH)
     logging.info("Data preview:")
     logging.info("\n%s", data.head().to_string())
 
 def process_data_task():
     logging.info("Processing data...")
-    data = import_data("/opt/airflow/data/supply_chain.csv")
-    processed_data = process_data(data)
-    logging.info("Processed data preview:")
-    # logging.info("\n%s", processed_data.head().to_string())
-    return processed_data
+    data = import_data(DATA_PATH)
+    processed_path = process_data(data)
+    logging.info("Data processing complete.")
+    return processed_path
 
-def split_data_task():
+def split_data_task(ti):
     logging.info("Splitting data...")
-    data = import_data("/opt/airflow/data/supply_chain.csv")
-    processed_data = process_data(data)
-    split_paths = split_data(processed_file_path=processed_data, test_size=0.2, random_state=42, balance_classes=True)
+    processed_path = ti.xcom_pull(task_ids="process_data")
+    split_paths = split_data(processed_file_path=processed_path, test_size=0.2, random_state=42, balance_classes=True)
     logging.info(f"Data split paths: {split_paths}")
     return split_paths
 
 def done():
-    p_data = process_data_task()
-    # logging.info("\n%s", p_data.head(10).to_string())
     logging.info("Pipeline finished successfully.")
 
 
