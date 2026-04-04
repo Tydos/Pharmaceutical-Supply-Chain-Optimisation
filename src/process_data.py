@@ -1,7 +1,7 @@
-import pandas as pd
+import os
+import tempfile
 import logging
-import numpy as np
-import sklearn
+import pandas as pd
 from sklearn.calibration import LabelEncoder
 
 def process_data(x):
@@ -41,7 +41,6 @@ def process_data(x):
         x['First Line Designation']=le.fit_transform(x['First Line Designation'])
         x['Dosage Form']=le.fit_transform(x['Dosage Form'])    
 
-        import tempfile, os
         temp_dir = tempfile.gettempdir()
         temp_file = os.path.join(temp_dir, "processed_data.csv")
         x.to_csv(temp_file, index=False)
