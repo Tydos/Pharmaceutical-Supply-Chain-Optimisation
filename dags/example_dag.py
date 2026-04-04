@@ -72,7 +72,7 @@ def run_inference_task():
 
 
 def done():
-    p_data = process_data_task()
+    process_data_task()
     # logging.info("\n%s", p_data.head(10).to_string())
     logging.info("Pipeline finished successfully.")
 
