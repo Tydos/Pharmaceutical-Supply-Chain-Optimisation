@@ -4,11 +4,20 @@ from collections import Counter
 import logging
 import pandas as pd
 import os
+import tempfile
 
-def split_data(processed_file_path, output_dir="/tmp/ml_splits", test_size=0.2, random_state=42, balance_classes=False):
+def split_data(
+    processed_file_path: str,
+    output_dir: str = "",
+    test_size: float = 0.2,
+    random_state: int = 42,
+    balance_classes: bool = False,
+) -> dict:
     logging.info("Starting data splitting...")
 
     try:
+        if not output_dir:
+            output_dir = os.path.join(tempfile.gettempdir(), "ml_splits")
         os.makedirs(output_dir, exist_ok=True)
         data = pd.read_csv(processed_file_path)
 

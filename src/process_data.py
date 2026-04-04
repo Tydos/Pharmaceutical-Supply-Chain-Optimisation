@@ -1,10 +1,10 @@
+import os
+import tempfile
 import pandas as pd
 import logging
-import numpy as np
-import sklearn
-from sklearn.calibration import LabelEncoder
+from sklearn.preprocessing import LabelEncoder
 
-def process_data(x):
+def process_data(x: pd.DataFrame) -> str:
     logging.info("Starting data processing...")
 
     try:
@@ -13,8 +13,8 @@ def process_data(x):
 
         # Handle 'Line Item Insurance (USD)' column
         x['Line Item Insurance (USD)']=x['Line Item Insurance (USD)'].fillna(x['Line Item Insurance (USD)'].median())
-        x['Line Item Insurance (USD)'].values[x['Line Item Insurance (USD)'].values>1000]=x['Line Item Insurance (USD)'].median()
-        x['Line Item Insurance (USD)'].values[x['Line Item Insurance (USD)'].values>200]=x['Line Item Insurance (USD)'].mean()
+        x.loc[x['Line Item Insurance (USD)'] > 1000, 'Line Item Insurance (USD)'] = x['Line Item Insurance (USD)'].median()
+        x.loc[x['Line Item Insurance (USD)'] > 200, 'Line Item Insurance (USD)'] = x['Line Item Insurance (USD)'].mean()
        
         # Convert all cells to numeric where possible, coerce errors to NaN
         x['Freight Cost (USD)'] = x['Freight Cost (USD)'].apply(pd.to_numeric, errors='coerce')
@@ -24,12 +24,12 @@ def process_data(x):
 
         x['Shipment Mode']=x['Shipment Mode'].fillna(x['Shipment Mode'].mode()[0])
         x['Dosage']=x['Dosage'].fillna(x['Dosage'].mode()[0])
-        x['Dosage'] = x['Dosage'].str.extract('(\d+)', expand=False).astype(int)        
+        x['Dosage'] = x['Dosage'].str.extract(r'(\d+)', expand=False).astype(int)        
         x['Weight (Kilograms)'] = x['Weight (Kilograms)'].apply(pd.to_numeric, errors='coerce')
         x = x[x['Weight (Kilograms)'].notna()]  
 
         for column in ['Scheduled Delivery Date', 'Delivered to Client Date', 'Delivery Recorded Date']:
-            x[column] = pd.to_datetime(x[column])
+            x[column] = pd.to_datetime(x[column], format='mixed')
             x[column + ' Year'] = x[column].apply(lambda x: x.year)
             x[column + ' Month'] = x[column].apply(lambda x: x.month)
             x[column + ' Day'] = x[column].apply(lambda x: x.day)
@@ -41,7 +41,6 @@ def process_data(x):
         x['First Line Designation']=le.fit_transform(x['First Line Designation'])
         x['Dosage Form']=le.fit_transform(x['Dosage Form'])    
 
-        import tempfile, os
         temp_dir = tempfile.gettempdir()
         temp_file = os.path.join(temp_dir, "processed_data.csv")
         x.to_csv(temp_file, index=False)
