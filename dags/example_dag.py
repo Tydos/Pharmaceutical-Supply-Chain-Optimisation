@@ -1,10 +1,16 @@
 from datetime import datetime
 import logging
+from pathlib import Path
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from src.split_data import split_data
 from src.import_data import import_data
 from src.process_data import process_data
+from src.train import train as train_model
+from src.predict import load_model, predict as run_predict
+from src.config import load_config
+
+_AIRFLOW_CONFIG_PATH = Path("/opt/airflow/config/config.yaml")
 
 def hello_world():
     logging.info("Hello Airflow!")
@@ -38,6 +44,32 @@ def split_data_task():
     split_paths = split_data(processed_file_path=processed_data, test_size=0.2, random_state=42, balance_classes=True)
     logging.info(f"Data split paths: {split_paths}")
     return split_paths
+
+def train_model_task():
+    logging.info("Training model...")
+    config = load_config(_AIRFLOW_CONFIG_PATH)
+    system_cfg = config["system"]
+    model_cfg = config.get("model", {})
+    metrics = train_model(
+        data_path=system_cfg["raw_dataset_path"],
+        model_save_path=system_cfg["model_save_path"],
+        test_size=model_cfg.get("test_size", 0.2),
+        random_state=model_cfg.get("random_state", 42),
+    )
+    logging.info("Training complete. Metrics: %s", metrics)
+    return metrics
+
+
+def run_inference_task():
+    logging.info("Running inference...")
+    config = load_config(_AIRFLOW_CONFIG_PATH)
+    system_cfg = config["system"]
+    model = load_model(system_cfg["model_save_path"])
+    data = import_data(system_cfg["raw_dataset_path"])
+    predictions = run_predict(model, data)
+    logging.info("Inference complete. Total predictions: %d", len(predictions))
+    return predictions.tolist()
+
 
 def done():
     p_data = process_data_task()
@@ -77,9 +109,19 @@ with DAG(
         python_callable=split_data_task,
     )
 
+    t7 = PythonOperator(
+        task_id="train_model",
+        python_callable=train_model_task,
+    )
+
+    t8 = PythonOperator(
+        task_id="run_inference",
+        python_callable=run_inference_task,
+    )
+
     end = PythonOperator(
         task_id="done",
         python_callable=done,
     )
 
-    t1 >> t2 >> t3 >> t4 >> t6 >> end
+    t1 >> t2 >> t3 >> t4 >> t6 >> t7 >> t8 >> end
